@@ -13,4 +13,4 @@ args = [
     "run:app"
 ]
 
-subprocess.Popen(args, shell=True)
+subprocess.Popen(args)
