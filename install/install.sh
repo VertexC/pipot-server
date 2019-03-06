@@ -18,10 +18,9 @@ echo ""
 echo "* Updating package list        "
 apt-get update >> "$install_log" 2>&1
 echo "* Installing nginx, python & pip      "
+apt-get -q -y install dnsutils nginx python python-dev python-pip >> "$install_log" 2>&1
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
-    apt-get -q -y install dnsutils nginx python build-essential libffi-dev libssl-dev python-dev python-pip >> "$install_log" 2>&1
-else
-    apt-get -q -y install dnsutils nginx python python-dev python-pip >> "$install_log" 2>&1
+    apt-get -q -y install build-essential libffi-dev libssl-dev >> "$install_log" 2>&1
 fi
 if [ ! -f /etc/init.d/mysql* ]; then
     echo "* Installing MySQL (root password will be empty!)"
