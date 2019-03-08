@@ -23,8 +23,7 @@ if [ ! -f /etc/init.d/mysql* ]; then
     echo "* Installing MySQL (root password will be empty!)"
     DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-server >> "$install_log" 2>&1
 fi
-read -e -p "Name of the virtualenv: " -i "" virtualenv_name
-virtualenv_name="/usr/src/pipot/$virtualenv_name"
+virtualenv_name="/usr/src/pipot/pipot-env"
 # Check if virtulenv has been created
 if [ ! -d $virtualenv_name ]; then
     echo "* Create virtualenv $virtualenv_name"
@@ -151,4 +150,3 @@ echo ""
 echo "* Starting PiPot..."
 service pipot start
 echo "PiPot installed!"
-deactivate
