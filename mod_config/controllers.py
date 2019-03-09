@@ -6,6 +6,7 @@ import threading
 from flask import Blueprint, g, request, send_file, jsonify, abort, \
     url_for, redirect
 from werkzeug.utils import secure_filename
+import zipfile
 
 from database import create_session
 from decorators import get_menu_entries, template_renderer
@@ -17,7 +18,6 @@ from mod_config.forms import NewServiceForm, BaseServiceForm, \
 from mod_config.models import Service, Notification, Rule, Actions, Conditions
 from pipot.notifications import NotificationLoader
 from pipot.services import ServiceLoader
-
 mod_config = Blueprint('config', __name__)
 
 
@@ -288,29 +288,38 @@ def services():
         # Process uploaded file
         file = request.files[form.file.name]
         if file:
-            filename = secure_filename(file.filename)
             temp_path = os.path.join('./pipot/services/temp', filename)
             final_path = os.path.join('./pipot/services', filename)
             if not os.path.isfile(final_path):
                 file.save(temp_path)
-                # Import and verify module
-                try:
-                    instance = ServiceLoader.load_from_file(temp_path)
-                    # Auto-generate tables
-                    instance.get_used_table_names()
-                    # Move
-                    os.rename(temp_path, final_path)
-                    service = Service(instance.__class__.__name__,
-                                      form.description.data)
-                    g.db.add(service)
-                    g.db.commit()
-                    # Reset form, all ok
-                    form = NewServiceForm(None)
-                except ServiceLoader.ServiceLoaderException as e:
-                    # Remove file
-                    os.remove(temp_path)
-                    # Pass error to user
-                    form.errors['file'] = [e.value]
+                filenames = []
+                filename = secure_filename(file.filename)
+                if zipfille.is_zipfile(filename):
+                    with zipfile.ZipFile(containe, 'r') as zip_ref:
+                        zip_ref.extractall(temp_path)
+                        file_names.extend(zip_ref.namelist())
+                        zip_ref.close()
+                else:
+                    filenames.append(filename)
+                for filename in filenames:
+                    # Import and verify module
+                    try:
+                        instance = ServiceLoader.load_from_file(temp_path)
+                        # Auto-generate tables
+                        instance.get_used_table_names()
+                        # Move
+                        os.rename(temp_path, final_path)
+                        service = Service(instance.__class__.__name__,
+                                          form.description.data)
+                        g.db.add(service)
+                        g.db.commit()
+                        # Reset form, all ok
+                        form = NewServiceForm(None)
+                    except ServiceLoader.ServiceLoaderException as e:
+                        # Remove file
+                        os.remove(temp_path)
+                        # Pass error to user
+                        form.errors['file'] = [e.value]
             else:
                 form.errors['file'] = ['Service already exists.']
     return {
