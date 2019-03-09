@@ -29,7 +29,7 @@ fi
 echo "* Update setuptools            "
 pip install --upgrade setuptools  >> "$install_log" 2>&1
 echo "* Installing pip dependencies"
-pip install werkzeug ipaddress enum34 cryptography idna sqlalchemy twisted pyopenssl flask-sqlalchemy flask passlib pymysql service_identity pycrypto flask-wtf netifaces gunicorn >> "$install_log" 2>&1
+pip install ipaddress enum34 cryptography idna sqlalchemy twisted pyopenssl flask-sqlalchemy flask passlib pymysql service_identity pycrypto flask-wtf netifaces gunicorn >> "$install_log" 2>&1
 echo ""
 echo "-------------------------------"
 echo "|   Configuration of PiPot    |"
