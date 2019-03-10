@@ -18,7 +18,11 @@ echo ""
 echo "* Updating package list        "
 apt-get update >> "$install_log" 2>&1
 echo "* Installing nginx, python & pip      "
+
 apt-get -q -y install virtualenv dnsutils nginx python python-dev python-pip >> "$install_log" 2>&1
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+    apt-get -q -y install build-essential libffi-dev libssl-dev >> "$install_log" 2>&1
+fi
 if [ ! -f /etc/init.d/mysql* ]; then
     echo "* Installing MySQL (root password will be empty!)"
     DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-server >> "$install_log" 2>&1
@@ -34,9 +38,9 @@ fi
 source $virtualenv_name/bin/activate
 
 echo "* Update setuptools            "
-easy_install -U setuptools >> "$install_log" 2>&1
+pip install --upgrade setuptools  >> "$install_log" 2>&1
 echo "* Installing pip dependencies"
-pip install twisted pyopenssl flask-sqlalchemy flask passlib pymysql service_identity pycrypto flask-wtf netifaces gunicorn >> "$install_log" 2>&1
+pip install ipaddress enum34 cryptography idna sqlalchemy twisted pyopenssl flask-sqlalchemy flask passlib pymysql service_identity pycrypto flask-wtf netifaces gunicorn >> "$install_log" 2>&1
 echo ""
 echo "-------------------------------"
 echo "|   Configuration of PiPot    |"
