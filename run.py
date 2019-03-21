@@ -12,6 +12,7 @@ from mod_config.controllers import mod_config
 from mod_honeypot.controllers import mod_honeypot
 from mod_report.controllers import mod_report
 from mod_support.controllers import mod_support
+from mod_auth.models import User
 
 app = Flask(__name__)
 config = parse_config('config')
@@ -21,6 +22,14 @@ try:
 except KeyError:
     app.config['DEBUG'] = False
 
+from flask_login import LoginManager
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+@login_manager.user_loader
+def load_user(id):
+    return User.query.get(int(id))
+ 
 
 def install_secret_keys(application, secret_session='secret_key',
                         secret_csrf='secret_csrf'):

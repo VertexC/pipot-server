@@ -1,6 +1,6 @@
 import datetime
 from flask import Blueprint, g, jsonify, request, render_template_string
-
+from flask_login import login_required
 from decorators import template_renderer, get_menu_entries
 from mod_auth.controllers import login_required, check_access_rights
 

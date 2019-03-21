@@ -4,6 +4,7 @@ from passlib.apps import custom_app_context as pwd_context
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
+from flask_login import UserMixin
 
 from database import Base
 
@@ -73,7 +74,7 @@ class PageAccess(Base):
         return '<PageAccess %r,%r>' % (self.page_id, self.role_id)
 
 
-class User(Base):
+class User(Base, UserMixin):
     __tablename__ = 'users'
     __table_args__ = {'mysql_engine': 'InnoDB'}
     id = Column(Integer, primary_key=True)

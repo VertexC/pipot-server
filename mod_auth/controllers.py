@@ -2,7 +2,7 @@ from functools import wraps
 
 from flask import Blueprint, g, request, flash, session, redirect, url_for, \
     abort, jsonify
-
+from flask_login import login_user, login_required, logout_user, current_user
 from decorators import template_renderer, get_menu_entries
 from mod_auth.forms import LoginForm, AccountForm, CreateUserForm, \
     UserModifyForm, CreateRoleForm, ToggleRoleForm, DeleteRoleForm
@@ -34,19 +34,6 @@ def before_app_request():
                 'auth.access'}
         ]
     )
-
-
-def login_required(f):
-    """
-    Decorator that redirects to the login page if a user is not logged in.
-    """
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if g.user is None:
-            return redirect(url_for('auth.login',
-                                    next=request.endpoint))
-        return f(*args, **kwargs)
-    return decorated_function
 
 
 def check_access_rights(parent_route=None):
@@ -86,7 +73,7 @@ def login():
         user = User.query.filter_by(name=form.username.data).first()
 
         if user and user.is_password_valid(form.password.data):
-            session['user_id'] = user.id
+            login_user(user)
             if len(redirect_location) == 0:
                 return redirect("/")
             else:
@@ -107,7 +94,7 @@ def login():
 @template_renderer()
 def logout():
     # Destroy session variable
-    session.pop('user_id', None)
+    logout_user()
     flash('You have been logged out', 'success')
     return redirect(url_for('auth.login'))
 

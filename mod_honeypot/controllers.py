@@ -7,7 +7,7 @@ import binascii
 import subprocess
 from flask import Blueprint, g, send_file, abort, url_for, redirect, \
     jsonify, request, make_response
-
+from flask_login import login_required
 import netifaces as ni
 
 from Crypto import Random
