@@ -4,6 +4,7 @@ import traceback
 import sys
 
 from flask import Flask, g
+from flask_login import LoginManager
 from config_parser import parse_config
 from database import create_session
 from decorators import template_renderer
@@ -22,14 +23,14 @@ try:
 except KeyError:
     app.config['DEBUG'] = False
 
-from flask_login import LoginManager
 login_manager = LoginManager()
 login_manager.init_app(app)
+
 
 @login_manager.user_loader
 def load_user(id):
     return User.query.get(int(id))
- 
+
 
 def install_secret_keys(application, secret_session='secret_key',
                         secret_csrf='secret_csrf'):
