@@ -3,7 +3,7 @@
 SERVER_IP = '192.168.0.100'
 SERVER_PORT = 443
 INSTANCE_NAME = 'myTestInstance'
-APPLICATION_ROOT = None
+APPLICATION_ROOT = '/'
 CSRF_ENABLED = True
 DATABASE_URI = 'mysql+pymysql://root:@localhost:3306/test'
 COLLECTOR_UDP_PORT = 1234
