@@ -64,14 +64,14 @@ echo "Mounting proc & sys" >> "${LOG}" 2>&1
 mount proc /mnt/tmp/proc -t proc >> "${LOG}" 2>&1
 mount sysfs /mnt/tmp/sys -t sysfs >> "${LOG}" 2>&1
 echo "Copy necessary files" >> "${LOG}" 2>&1
-cp -r "${DIR}/../../client" /mnt/tmp/usr/src/client >> "${LOG}" 2>&1
+cp -r "${DIR}/../../client" /mnt/tmp/usr/src/pipot/client >> "${LOG}" 2>&1
 echo "${3}" > /tmp/profile.json
-mv /tmp/profile.json /mnt/tmp/usr/src/client/honeypot_profile.json
-cp -r "${DIR}/../pipot/services" /mnt/tmp/usr/src/client/pipot >> "${LOG}" 2>&1
+mv /tmp/profile.json /mnt/tmp/usr/src/pipot/client/honeypot_profile.json
+cp -r "${DIR}/../pipot/services" /mnt/tmp/usr/src/pipot/client/pipot >> "${LOG}" 2>&1
 # Chroot into it
 echo "40" > "${PROGRESS}"
 echo "Chrooting into image" >> "${LOG}" 2>&1
-chroot /mnt/tmp /usr/src/client/bin/chroot.sh "/install-log.txt" "${4}" "${5}" "${6}" "${7}"  >> "${LOG}" 2>&1
+chroot /mnt/tmp /usr/src/pipot/client/bin/chroot.sh "/install-log.txt" "${4}" "${5}" "${6}" "${7}"  >> "${LOG}" 2>&1
 cat /mnt/tmp/install-log.txt >> "${LOG}" 2>&1
 echo "Exited chroot, unmounting proc & sys" >> "${LOG}" 2>&1
 echo "90" > "${PROGRESS}"
