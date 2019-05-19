@@ -22,7 +22,10 @@ from models import Profile, ProfileService, Deployment, PiPotReport, \
     PiModels, CollectorTypes
 
 mod_honeypot = Blueprint('honeypot', __name__)
-
+@mod_honeypot.record
+def record_params(setup_state):
+  app = setup_state.app
+  mod_honeypot.config = dict([(key,value) for (key,value) in app.config.iteritems()]) # TODO: python3 update
 
 @mod_honeypot.before_app_request
 def before_request():
@@ -175,7 +178,7 @@ def manage():
         return jsonify(result)
 
     if sys.platform.startswith("linux"):
-        addrs = ni.ifaddresses('eth0')
+        addrs = ni.ifaddresses(mod_honeypot.config.get('NETWORK_INTERFACE'))
         new_deploy.server_ip.data = addrs[ni.AF_INET][0]['addr']
         print('Setting default ip: %s' % addrs[ni.AF_INET][0]['addr'])
     else:
