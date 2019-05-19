@@ -113,7 +113,6 @@ app.register_blueprint(mod_config)
 app.register_blueprint(mod_report)
 app.register_blueprint(mod_honeypot)
 app.register_blueprint(mod_support)
-import pdb; pdb.set_trace;
 
 if __name__ == '__main__':
     # Run in development mode; Werkzeug server

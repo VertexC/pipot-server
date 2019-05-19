@@ -24,8 +24,9 @@ from models import Profile, ProfileService, Deployment, PiPotReport, \
 mod_honeypot = Blueprint('honeypot', __name__)
 @mod_honeypot.record
 def record_params(setup_state):
-  app = setup_state.app
-  mod_honeypot.config = dict([(key,value) for (key,value) in app.config.iteritems()]) # TODO: python3 update
+    app = setup_state.app
+    # TODO: python3 update
+    mod_honeypot.config = dict([(key, value) for (key, value) in app.config.iteritems()])
 
 @mod_honeypot.before_app_request
 def before_request():
