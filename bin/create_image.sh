@@ -9,7 +9,7 @@
 # - debug
 # - wlan config (optional)
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-LOG="${DIR}/${1}_output.txt"
+LOG="${DIR}/${1}_$(date +%d-%m-%Y-%H-%M-%S)_output.txt"
 PROGRESS="${DIR}/${1}_progress.txt"
 IMAGE_DIR="${DIR}/../honeypot_images"
 echo "0" > "${PROGRESS}"
@@ -68,6 +68,12 @@ cp -r "${DIR}/../../client" /mnt/tmp/usr/src/client >> "${LOG}" 2>&1
 echo "${3}" > /tmp/profile.json
 mv /tmp/profile.json /mnt/tmp/usr/src/client/honeypot_profile.json
 cp -r "${DIR}/../pipot/services" /mnt/tmp/usr/src/client/pipot >> "${LOG}" 2>&1
+cpuArch=$(python ${DIR}/getCpuArch.py)
+if [ $(arch) != arm* ]; then
+    echo "This is not arm machine, copy QemuUserEmulation binary to the chroot"  >> "${LOG}" 2>&1
+    # Copy QemuUserEmulation binary to the chroot
+    cp /usr/bin/qemu-arm-static /mnt/tmp/usr/bin >> "${LOG}" 2>&1
+fi
 # Chroot into it
 echo "40" > "${PROGRESS}"
 echo "Chrooting into image" >> "${LOG}" 2>&1
@@ -75,6 +81,10 @@ chroot /mnt/tmp /usr/src/client/bin/chroot.sh "/install-log.txt" "${4}" "${5}" "
 cat /mnt/tmp/install-log.txt >> "${LOG}" 2>&1
 echo "Exited chroot, unmounting proc & sys" >> "${LOG}" 2>&1
 echo "90" > "${PROGRESS}"
+if [ $(arch) != arm* ]; then
+    # Remove QemuUserEmulation
+    rm /mnt/tmp/usr/bin/qemu-arm-static >> "${LOG}" 2>&1
+fi
 # After exiting, unmount volumes
 umount /mnt/tmp/proc && umount /mnt/tmp/sys >> "${LOG}" 2>&1
 sleep 5
