@@ -95,7 +95,7 @@ fi
 server_ip=`dig +short myip.opendns.com @resolver1.opendns.com`
 read -e -p "Server IP: " -i "${server_ip}" config_server_ip
 read -e -p "Server interface (SSL): " -i "443" config_server_port
-read -e -p "Application root (if not a whole (sub)domain, enter the path. None if whole (sub)domain): " -i "'/'" config_application_root
+read -e -p "Application root (if not a whole (sub)domain, enter the path. None if whole (sub)domain): " -i "None" config_application_root
 read -e -p "Instance name: " -i "PiPot Command & Control" config_instance_name
 read -e -p "Path to SSL certificate: " -i "/usr/src/pipot/server/cert/pipot.crt" config_ssl_cert
 read -e -p "Path to SSL key: " -i "/usr/src/pipot/server/cert/pipot.key" config_ssl_key

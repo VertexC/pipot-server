@@ -68,7 +68,7 @@ cp -r "${DIR}/../../client" /mnt/tmp/usr/src/client >> "${LOG}" 2>&1
 echo "${3}" > /tmp/profile.json
 mv /tmp/profile.json /mnt/tmp/usr/src/client/honeypot_profile.json
 cp -r "${DIR}/../pipot/services" /mnt/tmp/usr/src/client/pipot >> "${LOG}" 2>&1
-cpuArch=$(python ${DIR}/getCpuArch.py)
+cpuArch=$(lscpu | grep Architecture | sed 's/Architecture:  *//')
 if [ $(arch) != arm* ]; then
     echo "This is not arm machine, copy QemuUserEmulation binary to the chroot"  >> "${LOG}" 2>&1
     # Copy QemuUserEmulation binary to the chroot

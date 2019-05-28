@@ -24,5 +24,7 @@ secret_csrf
 secret_key
 config.py
 
-# Generated images for the honeypots (big binary blobs)
+# Generated images for the honeypots (big binary blobs) and logs
 honeypot_images/*.img
+*output.txt
+*progress.txt
