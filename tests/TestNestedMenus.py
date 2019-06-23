@@ -1,13 +1,13 @@
 import unittest
 
 from mock import patch, call
-from server.decorators import get_menu_entries, get_permissible_entries
+from decorators import get_menu_entries, get_permissible_entries
 
 
 class TestGetMenuEntries(unittest.TestCase):
 
     @patch('mod_auth.models.User')
-    @patch('server.decorators.get_permissible_entries')
+    @patch('decorators.get_permissible_entries')
     def test_get_menu_entries_with_simple_entries(self, mock_permissible_entries, mock_user):
         """
         Passing a menu entry to get_menu_entries() when all the
@@ -59,7 +59,7 @@ class TestGetMenuEntries(unittest.TestCase):
         mock_permissible_entries.assert_has_calls(calls)  # Check that mocked function correctly called
 
     @patch('mod_auth.models.User')
-    @patch('server.decorators.get_permissible_entries')
+    @patch('decorators.get_permissible_entries')
     def test_get_menu_entries_with_no_permissions(self, mock_permissible_entries, mock_user):
         """
         Passing a menu entry to get_menu_entries() when user is not
