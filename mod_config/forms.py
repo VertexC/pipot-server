@@ -1,4 +1,5 @@
 import re
+import os
 from enum import Enum
 from flask_wtf import Form
 from wtforms import SubmitField, FileField, TextAreaField, HiddenField, \
@@ -16,7 +17,7 @@ class FileType(Enum):
 def is_python_or_container(file_name):
     # Check if it ends on .py
     is_py = re.compile(r"^[^/\\]*.py$").match(file_name)
-    is_container = re.compile(r"^[^/\\]*.zip$").match(file_name)
+    is_container = re.compile((r"^[^/\\]*.zip$")).match(file_name)
     if not is_py and not is_container:
         raise ValidationError('Provided file is not a python (.py) file or a container (.zip)!')
     return FileType.CONTAINER if is_container else FileType.PYTHONFILE
@@ -24,6 +25,7 @@ def is_python_or_container(file_name):
 
 def simple_service_file_validation(check_service=True):
     def validate_file(form, field):
+        field.data.filename = os.path.basename(field.data.filename)
         file_type = is_python_or_container(field.data.filename)
         if file_type is FileType.PYTHONFILE:
             # Name cannot be one of the files we already have

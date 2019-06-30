@@ -280,6 +280,7 @@ def data_processing_ajax(action):
 
 
 def verify_and_import_module(temp_path, final_path, form, is_container=False):
+    # import pdb; pdb.set_trace()
     if is_container:
         instance = ServiceLoader.load_from_container(temp_path)
     else:
@@ -299,17 +300,16 @@ def verify_and_import_module(temp_path, final_path, form, is_container=False):
 @template_renderer()
 def services():
     form = NewServiceForm()
-
     if form.validate_on_submit():
         # Process uploaded file
         file = request.files[form.file.name]
         if file:
             filename = secure_filename(file.filename)
-            basename = filename.split('.')[0]
+            basename, extname = os.path.splitext(filename)
             temp_dir = os.path.join('./pipot/services/temp', basename)
             final_dir = os.path.join('./pipot/services', basename)
             if not os.path.isdir(final_dir):
-                if zipfile.is_zipfile(file):
+                if extname == '.zip':
                     zip_file = zipfile.ZipFile(file)
                     ret = zip_file.testzip()
                     if ret:
@@ -321,7 +321,7 @@ def services():
                             # Reset form, all ok
                             form = NewServiceForm(None)
                         except ServiceLoader.ServiceLoaderException as e:
-                            os.remove(temp_dir)
+                            shutil.rmtree(temp_dir)
                             form.errors['container'] = [e.value]
                 else:
                     if os.path.exists(temp_dir):
@@ -338,7 +338,7 @@ def services():
                         form = NewServiceForm(None)
                     except ServiceLoader.ServiceLoaderException as e:
                         # Remove file
-                        os.remove(temp_dir)
+                        shutil.rmtree(temp_dir)
                         # Pass error to user
                         form.errors['file'] = [e.value]
             else:
