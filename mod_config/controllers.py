@@ -281,7 +281,6 @@ def data_processing_ajax(action):
 
 
 def verify_and_import_module(temp_path, final_path, form, is_container=False):
-    # import pdb; pdb.set_trace()
     if is_container:
         instance = ServiceLoader.load_from_container(temp_path)
     else:
@@ -366,6 +365,7 @@ def services_ajax(action):
                 Service.id == form.id.data).first()
             # Delete service
             g.db.delete(service)
+            # TODO: remove the service model as well 
             # Delete file
             try:
                 shutil.rmtree(service.get_file())
@@ -404,7 +404,7 @@ def services_ajax(action):
                     instance = ServiceLoader.load_from_file(temp_path)
                     models = instance.get_used_table_names()
                     # TODO: how to handle altered models?
-                    # Overwrite existing
+                    # 1. create a file to manage all service file names in use
                     shutil.move(temp_path, service.get_file())
                     result['status'] = 'success'
                     form = UpdateServiceForm()
