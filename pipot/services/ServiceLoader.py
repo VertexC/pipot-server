@@ -1,5 +1,6 @@
 import importlib
 import os
+import sys
 
 from pipot.services.IService import IService
 import pipot.services as main
@@ -17,7 +18,7 @@ class ServiceLoaderException(Exception):
         return repr(self.value)
 
 
-def load_from_container(container_dir):
+def load_from_container(container_dir, temp_folder=False):
     """Attempts to load the service from a folder with the same name
     Required container format:
     myService.zip
@@ -40,7 +41,7 @@ def load_from_container(container_dir):
             pass
         if not os.path.isfile(os.path.join(container_dir, '__init__.py')):
             open(os.path.join(container_dir, '__init__.py'), 'w')
-        instance = load_from_file(mod_file)
+        instance = load_from_file(mod_file, temp_folder=temp_folder)
         return instance
 
 

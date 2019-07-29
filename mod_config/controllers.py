@@ -18,7 +18,7 @@ from mod_config.forms import NewServiceForm, BaseServiceForm, \
     RuleForm, DeleteRuleForm
 from mod_config.models import Service, Notification, Rule, Actions, Conditions
 from pipot.notifications import NotificationLoader
-from pipot.services import ServiceLoader
+from pipot.services import ServiceLoader, ServiceModelsManager
 
 mod_config = Blueprint('config', __name__)
 
@@ -280,19 +280,19 @@ def data_processing_ajax(action):
     return jsonify(result)
 
 
-def verify_and_import_module(temp_path, final_path, form, is_container=False):
+def verify_and_import_module(final_path, form, is_container=False):
     if is_container:
-        instance = ServiceLoader.load_from_container(temp_path)
+        instance = ServiceLoader.load_from_container(final_path, temp_folder=False)
     else:
-        instance = ServiceLoader.load_from_file(temp_path)
+        instance = ServiceLoader.load_from_file(final_path, temp_folder=False)
     # Auto-generate tables
     instance.get_used_table_names()
     # Move
-    os.rename(temp_path, final_path)
     service = Service(instance.__class__.__name__,
                       form.description.data)
     g.db.add(service)
     g.db.commit()
+
 
 @mod_config.route('/services', methods=['GET', 'POST'])
 @login_required
@@ -306,7 +306,6 @@ def services():
         if file:
             filename = secure_filename(file.filename)
             basename, extname = os.path.splitext(filename)
-            temp_dir = os.path.join('./pipot/services/temp', basename)
             final_dir = os.path.join('./pipot/services', basename)
             if not os.path.isdir(final_dir):
                 if extname == '.zip':
@@ -315,32 +314,32 @@ def services():
                     if ret:
                         form.errors['container'] = ['Corrupt container']
                     else:
-                        zip_file.extractall('./pipot/services/temp')
+                        zip_file.extractall('./pipot/services')
                         try:
-                            verify_and_import_module(temp_dir, final_dir, form, is_container=True)
+                            verify_and_import_module(final_dir, form, is_container=True)
                             # Reset form, all ok
                             form = NewServiceForm(None)
                         except ServiceLoader.ServiceLoaderException as e:
-                            shutil.rmtree(temp_dir)
+                            shutil.rmtree(final_dir)
                             form.errors['container'] = [e.value]
                 else:
-                    if os.path.exists(temp_dir):
-                        shutil.rmtree(temp_dir)
-                    os.mkdir(temp_dir)
-                    temp_file = os.path.join(temp_dir, filename)
+                    os.mkdir(final_dir)
+                    final_file = os.path.join(final_dir, filename)
                     # create the __init__.py for module import
-                    file.save(temp_file)
-                    open(os.path.join(temp_dir, '__init__.py'), 'w')
+                    file.save(final_file)
+                    open(os.path.join(final_dir, '__init__.py'), 'w')
                     # Import and verify module
                     try:
-                        verify_and_import_module(temp_dir, final_dir, form, is_container=False)
+                        verify_and_import_module(final_dir, form, is_container=False)
                         # Reset form, all ok
                         form = NewServiceForm(None)
                     except ServiceLoader.ServiceLoaderException as e:
                         # Remove file
-                        shutil.rmtree(temp_dir)
+                        shutil.rmtree(final_dir)
                         # Pass error to user
                         form.errors['file'] = [e.value]
+                # add service name to services.txt
+                ServiceModelsManager.add_models(basename)
             else:
                 form.errors['file'] = ['Service already exists.']
     return {
@@ -365,7 +364,7 @@ def services_ajax(action):
                 Service.id == form.id.data).first()
             # Delete service
             g.db.delete(service)
-            # TODO: remove the service model as well 
+            ServiceModelsManager.rm_models(service.name)
             # Delete file
             try:
                 shutil.rmtree(service.get_file())
