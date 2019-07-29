@@ -14,18 +14,26 @@ import tests.authMock
 from database import create_session
 from mod_config.models import Service
 from tests.testAppBase import TestAppBase
+from pipot.services import ServiceModelsManager
 
 test_dir = os.path.dirname(os.path.abspath(__file__))
 service_dir = os.path.join(test_dir, '../pipot/services/')
-
+temp_dir = os.path.join(test_dir, 'temp')
+if not os.path.exists(temp_dir):
+    os.makedirs(temp_dir)
+ServiceModelsManager.models_storage = os.path.join(temp_dir, 'models.txt')
 
 class TestServiceManagement(TestAppBase):
 
     def setUp(self):
         super(TestServiceManagement, self).setUp()
+        if not os.path.isfile(ServiceModelsManager.models_storage):
+            with open(ServiceModelsManager.models_storage, 'w'):
+                pass
 
     def tearDown(self):
         super(TestServiceManagement, self).tearDown()
+        os.remove(ServiceModelsManager.models_storage)
 
     def add_and_remove_service(self, service_name, service_file_name):
         # upload the service file
@@ -45,6 +53,8 @@ class TestServiceManagement(TestAppBase):
         self.assertTrue(os.path.isfile(os.path.join(service_dir, service_name, service_name + '.py')))
         # check service file and folder is removed under temp_path
         self.assertFalse(os.path.isdir(os.path.join(service_dir, 'temp', service_name)))
+        # check models.txt is updated
+        self.assertEqual(['TelnetService.ReportTelnet'], ServiceModelsManager.get_models())
         # check database
         try:
             db = create_session(self.app.config['DATABASE_URI'], drop_tables=False)
@@ -53,6 +63,8 @@ class TestServiceManagement(TestAppBase):
             name = service_row.name
         finally:
             db.remove()
+        from database import db_engine
+        self.assertTrue(db_engine.has_table('report_telnet'))
         self.assertEqual(service_name, name)
         # delete service file
         with self.app.test_client() as client:
@@ -64,6 +76,8 @@ class TestServiceManagement(TestAppBase):
             self.assertEqual(response.get_json()['status'], 'success')
         # check service file and folder is removed unser final_path
         self.assertFalse(os.path.isfile(os.path.join(service_dir, service_name, service_file_name)))
+        # check models.txt is updated
+        self.assertEqual([], ServiceModelsManager.get_models())
         # check database
         try:
             db = create_session(self.app.config['DATABASE_URI'], drop_tables=False)
@@ -72,6 +86,10 @@ class TestServiceManagement(TestAppBase):
         finally:
             db.remove()
         self.assertTrue(result)
+        from database import db_engine
+        self.assertFalse(db_engine.has_table('report_telnet'))
+        # clean the service module, otherwise table won't be added to Base.metadata in next test
+        del sys.modules['pipot.services.' + service_name + '.' + service_name]
 
     def test_add_and_delete_service_file(self):
         service_name = 'TelnetService'
