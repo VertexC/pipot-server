@@ -283,18 +283,19 @@ def data_processing_ajax(action):
     return jsonify(result)
 
 
-def verify_and_import_module(final_path, form, is_container=False):
+def verify_and_import_module(final_path, form, is_container=False, update=False):
     if is_container:
-        instance = ServiceLoader.load_from_container(final_path, temp_folder=False)
+        instance = ServiceLoader.load_from_container(final_path, temp_folder=False, update=update)
     else:
-        instance = ServiceLoader.load_from_file(final_path, temp_folder=False)
-    # Auto-generate tables
-    instance.get_used_table_names()
-    # Move
-    service = Service(instance.__class__.__name__,
-                      form.description.data)
-    g.db.add(service)
-    g.db.commit()
+        instance = ServiceLoader.load_from_file(final_path, temp_folder=False, update=update)
+    if not update:
+        # Auto-generate tables
+        instance.get_used_table_names()
+        # Update database
+        service = Service(instance.__class__.__name__,
+                        form.description.data)
+        g.db.add(service)
+        g.db.commit()
 
 
 @mod_config.route('/services', methods=['GET', 'POST'])
@@ -401,32 +402,41 @@ def services_ajax(action):
     if action == 'update':
         form = UpdateServiceForm(prefix='serviceUpdate_')
         if form.validate_on_submit():
+            # TODO: add support for container-based service update
             service = Service.query.filter(
                 Service.id == form.id.data).first()
             file = request.files[form.file.name]
-            if file and file.filename == service.name + '.py':
-                # Save file to temp location
-                temp_path = service.get_file(True)
-                file.save(temp_path)
+            filename = secure_filename(file.filename)
+            basename, extname = os.path.splitext(filename)
+            final_dir = os.path.join('./pipot/services', basename)
+            temp_dir = os.path.join('./pipot/services', 'temp')
+            if file.filename == service.name + '.py':
+                # move the original service to temp for backup
+                shutil.move(os.path.join(final_dir, filename),
+                            os.path.join(temp_dir, filename))
+                file.save(os.path.join(final_dir, filename))
                 # Import and verify module
                 try:
-                    instance = ServiceLoader.load_from_file(temp_path)
-                    models = instance.get_used_table_names()
-                    # TODO: how to handle altered models?
-                    # Overwrite existing
-                    shutil.move(temp_path, service.get_file())
+                    verify_and_import_module(final_dir, form, is_container=False, update=True)
+                    # Reset form, all ok
+                    form = NewServiceForm(None)
+                    # remove the old service file
+                    os.remove(os.path.join(temp_dir, filename))
                     result['status'] = 'success'
-                    form = UpdateServiceForm()
                 except ServiceLoader.ServiceLoaderException as e:
-                    # Remove file
-                    os.remove(temp_path)
+                    # overwirte the updated service file with the old one
+                    shutil.move(os.path.join(temp_dir, filename),
+                                os.path.join(final_dir, filename))
                     # Pass error to user
                     form.errors['file'] = [e.value]
+                    result['errors'] = form.errors
             else:
                 form.errors['file'] = [
                     'Filename does not match the service name'
                 ]
-        result['errors'] = form.errors
+                result['errors'] = form.errors
+        else:
+            result['errors'] = form.errors
     return jsonify(result)
 
 

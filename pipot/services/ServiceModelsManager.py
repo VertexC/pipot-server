@@ -1,3 +1,10 @@
+"""
+The models is stored in models.txt as
+[serviceName1].[tableName1]
+[serviceName1].[tableName2]
+[serviceName2].[tableName1]
+"""
+
 from __future__ import print_function
 import os
 import sys
@@ -36,3 +43,16 @@ def save_models(models):
     with open(models_storage, 'w') as f:
         for model in models:
             print(model, file=f)
+
+
+def import_models(services=None):
+    """
+    when services is None, import all models
+    otherwise import models specified in services only
+    """
+    models = get_models()
+    if services:
+        models = [model for model in models if model.split('.')[0] in services]
+    for model in models:
+        service = model.split('.')[0]
+        importlib.import_module('pipot.services' + '.' + service + '.' + service)

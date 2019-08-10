@@ -45,7 +45,7 @@ def load_from_container(container_dir, temp_folder=False):
         return instance
 
 
-def load_from_file(file_name, temp_folder=True):
+def load_from_file(file_name, temp_folder=True, update=False):
     """
     Attempts to load a given class from a file with the same name in this
     folder.
@@ -60,9 +60,14 @@ def load_from_file(file_name, temp_folder=True):
     mod_name, file_ext = os.path.splitext(os.path.split(file_name)[-1])
 
     try:
-        py_mod = importlib.import_module(
-            '.' + mod_name + '.' + mod_name,
-            temp.__name__ if temp_folder else main.__name__)
+        if update:
+            try:
+                del sys.modules['pipot.services.' + mod_name + '.' + mod_name]
+            except KeyError:
+                pass
+            py_mod = importlib.import_module(
+                '.' + mod_name + '.' + mod_name,
+                temp.__name__ if temp_folder else main.__name__)
 
         if hasattr(py_mod, mod_name):
             class_inst = getattr(py_mod, mod_name)(None, None)
