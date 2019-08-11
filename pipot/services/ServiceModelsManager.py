@@ -1,9 +1,7 @@
-"""
-The models is stored in models.txt as
-[serviceName1].[tableName1]
-[serviceName1].[tableName2]
-[serviceName2].[tableName1]
-"""
+# The models is stored in models.txt as
+# [serviceName1].[tableName1]
+# [serviceName1].[tableName2]
+# [serviceName2].[tableName1]
 
 from __future__ import print_function
 import os
